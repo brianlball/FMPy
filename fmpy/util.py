@@ -461,6 +461,11 @@ def download_file(url, checksum=None):
     with open(filename, 'wb') as f:
         f.write(response.content)
 
+    if checksum is not None:
+        hash = sha256_checksum(filename)
+        if not hash.startswith(checksum):
+            raise Exception("%s has the wrong SHA256 checksum. Expected %s but was %s." % (filename, checksum, hash))
+
 
 def download_test_file(fmi_version, fmi_type, tool_name, tool_version, model_name, filename):
     """ Download a file from the Test FMUs repository to the current directory """

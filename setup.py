@@ -1,10 +1,8 @@
 from setuptools import setup
-from urllib.request import urlretrieve
 import tarfile
 import os
 import shutil
 import distutils
-import hashlib
 import platform
 
 # compile Qt UI and resources
@@ -17,19 +15,13 @@ except Exception as e:
 # build CVode shared libraries
 url = 'https://computing.llnl.gov/projects/sundials/download/cvode-4.1.0.tar.gz'
 filename = 'cvode-4.1.0.tar.gz'
-sha256_hash = 'fe130b149dff00bdbe5cf04ea40f9209312d6f1e417831ec37238747c5322fff'
+checksum = 'fe130b149dff00bdbe5cf04ea40f9209312d6f1e417831ec37238747c5322fff'
 
-print("Downloading %s" % url)
-urlretrieve(url, filename)
-
-with open(filename, "rb") as f:
-    readable_hash = hashlib.sha256(f.read()).hexdigest()
-
-if readable_hash != sha256_hash:
-    raise Exception("%s has an illegal hash." % filename)
+from fmpy.util import download_file
+download_file(url, checksum)
 
 print("Extracting %s" % filename)
-with tarfile.open(filename, "r:gz") as tar:
+with tarfile.open(filename, 'r:gz') as tar:
     tar.extractall()
 
 print("Building CVode")
