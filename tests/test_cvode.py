@@ -1,5 +1,10 @@
 import unittest
 from fmpy.sundials import *
+from fmpy.sundials.nvector_serial import N_VNew_Serial, N_VDestroy_Serial, NV_DATA_S
+from fmpy.sundials.sunmatrix_dense import SUNDenseMatrix
+from fmpy.sundials.sunlinsol_dense import SUNLinSol_Dense
+from fmpy.sundials.cvode import *
+from fmpy.sundials.cvode_ls import *
 import numpy as np
 
 
