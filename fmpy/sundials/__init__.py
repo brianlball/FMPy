@@ -214,6 +214,19 @@ def NV_DATA_S(v):
     return NV_CONTENT_S(v).contents.data
 
 
+def _assertVersion():
+    major = c_int()
+    minor = c_int()
+    patch = c_int()
+    len = 8
+    label = create_string_buffer(len)
+    status = SUNDIALSGetVersionNumber(byref(major), byref(minor), byref(patch), label, len)
+    assert status == 0
+    assert major.value == 4
+
+
+_assertVersion()
+
 # class CVodeSolver(object):
 #     """ Interface to the CVode solver """
 #
