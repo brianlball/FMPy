@@ -1,210 +1,19 @@
 """ Interface to the SUNDIALS libraries """
 
-from ctypes import *
-import os
 import numpy as np
-from fmpy import platform, sharedLibraryExtension
-
-from .sundials_types import *
+from .cvode import *
+from .cvode_ls import *
+from .nvector_serial import *
+from .sundials_linearsolver import *
+from .sundials_matrix import *
 from .sundials_nvector import *
-from .nvector_serial import _N_VectorContent_Serial
-from .sundials_matrix import SUNMatrix
-from .sundials_version import SUNDIALSGetVersionNumber
-
-# # types
-# sunindextype = c_int64
-# realtype = c_double
-# booleantype = c_int
-
-library_dir, _ = os.path.split(__file__)
-
-# load SUNDIALS shared libraries
-# sundials_nvecserial     = cdll.LoadLibrary(os.path.join(library_dir, 'sundials_nvecserial'     + sharedLibraryExtension))
-# sundials_sunmatrixdense = cdll.LoadLibrary(os.path.join(library_dir, 'sundials_sunmatrixdense' + sharedLibraryExtension))
-# sundials_sunlinsoldense = cdll.LoadLibrary(os.path.join(library_dir, 'sundials_sunlinsoldense' + sharedLibraryExtension))
-# sundials_cvode          = cdll.LoadLibrary(os.path.join(library_dir, 'sundials_cvode'          + sharedLibraryExtension))
-
-# nvector_serial.h
+from .sundials_types import *
+from .sundials_version import *
+from .sunlinsol_dense import *
+from .sunmatrix_dense import *
 
 
-# # /* A vector is a structure with an implementation-dependent
-# #    'content' field, and a pointer to a structure of vector
-# #    operations corresponding to that implementation. */
-# # struct _generic_N_Vector {
-# #   void *content;
-# #   struct _generic_N_Vector_Ops *ops;
-# # };
-# class _generic_N_Vector(Structure):
-#     _fields_ = [('content',               c_void_p),
-#                 ('_generic_N_Vector_Ops', c_void_p)]
-
-
-# # /* Forward reference for pointer to N_Vector object */
-# # typedef struct _generic_N_Vector *N_Vector;
-# N_Vector = POINTER(_generic_N_Vector)
-
-# # SUNDIALS_EXPORT N_Vector N_VNew_Serial(sunindextype vec_length);
-# N_VNew_Serial = getattr(sundials_nvecserial, 'N_VNew_Serial')
-# N_VNew_Serial.argtypes = [c_long]
-# N_VNew_Serial.restype = N_Vector
-
-
-
-# # Return flags
-CV_SUCCESS = 0
-
-# # struct _N_VectorContent_Serial {
-# #   sunindextype length;   /* vector length       */
-# #   booleantype own_data;  /* data ownership flag */
-# #   realtype *data;        /* data array          */
-# # };
-# class _N_VectorContent_Serial(Structure):
-#     _fields_ = [('length',   sunindextype),
-#                 ('own_data', booleantype),
-#                 ('data',     POINTER(realtype))]
-#
-#
-# # struct _generic_N_Vector {
-# #   void *content;
-# #   struct _generic_N_Vector_Ops *ops;
-# # };_N_VectorContent_Serial
-# class _generic_N_Vector(Structure):
-#     _fields_ = [('content',               c_void_p),
-#                 ('_generic_N_Vector_Ops', c_void_p)]
-#
-# # # typedef struct _N_VectorContent_Serial *N_VectorContent_Serial;
-# N_VectorContent_Serial = POINTER(_N_VectorContent_Serial)
-
-# N_Vector = POINTER(_generic_N_Vector)
-#
-# N_VNew_Serial = getattr(sundials_nvecserial, 'N_VNew_Serial')
-# N_VNew_Serial.argtypes = [c_long]
-# N_VNew_Serial.restype = N_Vector
-#
-# # void N_VDestroy_Serial(N_Vector v)
-# N_VDestroy_Serial = getattr(sundials_nvecserial, 'N_VDestroy_Serial')
-# N_VDestroy_Serial.argtypes = [N_Vector]
-# N_VDestroy_Serial.restype = None
-
-
-# sunmatrix_dense.h
-
-# # typedef struct _generic_SUNMatrix *SUNMatrix;
-# SUNMatrix = c_void_p
-
-# # SUNDIALS_EXPORT SUNMatrix SUNDenseMatrix(sunindextype M, sunindextype N);
-# SUNDenseMatrix = getattr(sundials_sunmatrixdense, 'SUNDenseMatrix')
-# SUNDenseMatrix.argtypes = [sunindextype, sunindextype]
-# SUNDenseMatrix.restype = SUNMatrix
-
-# typedef struct _generic_SUNLinearSolver *SUNLinearSolver;
-SUNLinearSolver = c_void_p
-
-# # SUNDIALS_EXPORT SUNLinearSolver SUNLinSol_Dense(N_Vector y, SUNMatrix A);
-# SUNLinSol_Dense = getattr(sundials_sunlinsoldense, 'SUNLinSol_Dense')
-# SUNLinSol_Dense.argtypes = [N_Vector, SUNMatrix]
-# SUNLinSol_Dense.restype = SUNLinearSolver
-
-# # SUNDIALS_EXPORT int SUNDIALSGetVersionNumber(int *major, int *minor, int *patch,
-# #                                              char *label, int len);
-# SUNDIALSGetVersionNumber = getattr(sundials_cvode, 'SUNDIALSGetVersionNumber')
-# SUNDIALSGetVersionNumber.argtypes = [POINTER(c_int), POINTER(c_int), POINTER(c_int), c_char_p, c_int]
-# SUNDIALSGetVersionNumber.restype = c_int
-
-#
-# void *CVodeCreate(int lmm, int iter)
-# SUNDIALS_EXPORT void *CVodeCreate(int lmm);
-# CVodeCreate = getattr(sundials_cvode, 'CVodeCreate')
-# CVodeCreate.argtypes = [c_int]
-# CVodeCreate.restype = c_void_p
-
-# typedef void (*CVErrHandlerFn)(int error_code, const char *module, const char *function, char *msg, void *user_data);
-# CVErrHandlerFn = CFUNCTYPE(None, c_int, c_char_p, c_char_p, c_char_p, c_void_p)
-
-# typedef int (*CVRhsFn)(realtype t, N_Vector y, N_Vector ydot, void *user_data);
-# CVRhsFn = CFUNCTYPE(c_int, realtype, N_Vector, N_Vector, c_void_p)
-
-# typedef int (*CVRootFn)(realtype t, N_Vector y, realtype *gout, void *user_data);
-# CVRootFn = CFUNCTYPE(c_int, realtype, N_Vector, POINTER(realtype), c_void_p)
-
-# SUNDIALS_EXPORT int CVodeSetLinearSolver(void *cvode_mem,
-#                                          SUNLinearSolver LS,
-#                                          SUNMatrix A);
-# CVodeSetLinearSolver = getattr(sundials_cvode, 'CVodeSetLinearSolver')
-# CVodeSetLinearSolver.argtypes = [c_void_p, SUNLinearSolver, SUNMatrix]
-# CVodeSetLinearSolver.restype = c_int
-
-# # int CVodeSetErrHandlerFn(void *cvode_mem, CVErrHandlerFn ehfun, void *eh_data);
-# CVodeSetErrHandlerFn = getattr(sundials_cvode, 'CVodeSetErrHandlerFn')
-# CVodeSetErrHandlerFn.argtypes = [c_void_p, CVErrHandlerFn, c_void_p]
-# CVodeSetErrHandlerFn.restype = c_int
-
-# int CVodeSetNoInactiveRootWarn(void *cvode_mem);
-# CVodeSetNoInactiveRootWarn = getattr(sundials_cvode, 'CVodeSetNoInactiveRootWarn')
-# CVodeSetNoInactiveRootWarn.argtypes = [c_void_p]
-# CVodeSetNoInactiveRootWarn.restype = c_int
-
-# SUNDIALS_EXPORT int CVodeInit(void *cvode_mem, CVRhsFn f, realtype t0, N_Vector y0);
-# CVodeInit = getattr(sundials_cvode, 'CVodeInit')
-# CVodeInit.argtypes = [c_void_p, CVRhsFn, realtype, N_Vector]
-# CVodeInit.restype = c_int
-
-# int CVodeSetMaxStep(void *cvode_mem, realtype hmax);
-# CVodeSetMaxStep = getattr(sundials_cvode, 'CVodeSetMaxStep')
-# CVodeSetMaxStep.argtypes = [c_void_p, realtype]
-# CVodeSetMaxStep.restype = c_int
-
-# int CVodeSetMaxNumSteps(void *cvode_mem, long int mxsteps);
-# CVodeSetMaxNumSteps = getattr(sundials_cvode, 'CVodeSetMaxNumSteps')
-# CVodeSetMaxNumSteps.argtypes = [c_void_p, c_long]
-# CVodeSetMaxNumSteps.restype = c_int
-
-# void CVodeFree(void **cvode_mem)
-# CVodeFree = getattr(sundials_cvode, 'CVodeFree')
-# CVodeFree.argtypes = [POINTER(c_void_p)]
-# CVodeFree.restype = None
-
-# int CVodeRootInit(void *cvode_mem, int nrtfn, CVRootFn g)
-# CVodeRootInit = getattr(sundials_cvode, 'CVodeRootInit')
-# CVodeRootInit.argtypes = [c_void_p, c_int, CVRootFn]
-# CVodeRootInit.restype = c_int
-
-# int CVodeReInit(void *cvode_mem, realtype t0, N_Vector y0)
-# CVodeReInit = getattr(sundials_cvode, 'CVodeReInit')
-# CVodeReInit.argtypes = [c_void_p, realtype, N_Vector]
-# CVodeReInit.restype = c_int
-
-# int CVodeSVtolerances(void *cvode_mem, realtype reltol, N_Vector abstol)
-# CVodeSVtolerances = getattr(sundials_cvode, 'CVodeSVtolerances')
-# CVodeSVtolerances.argtypes = [c_void_p, realtype, N_Vector]
-# CVodeSVtolerances.restype = c_int
-
-#
-#  int CVode(void *cvode_mem, realtype tout, N_Vector yout, realtype *tret, int itask)
-# CVode = getattr(sundials_cvode, 'CVode')
-# CVode.argtypes = [c_void_p, realtype, N_Vector, POINTER(realtype), c_int]
-# CVode.restype = c_int
-#
-# # constants
-CV_ADAMS = 1
-CV_BDF   = 2
-
-CV_NORMAL = 1
-
-
-# macros
-
-# # #define NV_CONTENT_S(v)  ( (N_VectorContent_Serial)(v->content) )
-# def NV_CONTENT_S(v):
-#     return cast(v.contents.content, N_VectorContent_Serial)
-
-
-# # #define NV_DATA_S(v)     ( NV_CONTENT_S(v)->data )
-# def NV_DATA_S(v):
-#     return NV_CONTENT_S(v).contents.data
-
-
-def _assertVersion():
+def _assert_version():
     major = c_int()
     minor = c_int()
     patch = c_int()
@@ -215,7 +24,8 @@ def _assertVersion():
     assert major.value == 4
 
 
-_assertVersion()
+_assert_version()
+
 
 class CVodeSolver(object):
     """ Interface to the CVode solver """

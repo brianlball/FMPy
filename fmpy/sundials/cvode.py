@@ -17,16 +17,20 @@ from .sundials_nvector import *
 #
 # /* lmm */
 # #define CV_ADAMS          1
+CV_ADAMS = 1
 # #define CV_BDF            2
+CV_BDF = 2
 #
 # /* itask */
 # #define CV_NORMAL         1
+CV_NORMAL = 1
 # #define CV_ONE_STEP       2
 #
 #
 # /* return values */
 #
 # #define CV_SUCCESS               0
+CV_SUCCESS = 0
 # #define CV_TSTOP_RETURN          1
 # #define CV_ROOT_RETURN           2
 #
@@ -144,6 +148,9 @@ CVodeRootInit.restype = c_int
 # /* Rootfinding optional input functions */
 # SUNDIALS_EXPORT int CVodeSetRootDirection(void *cvode_mem, int *rootdir);
 # SUNDIALS_EXPORT int CVodeSetNoInactiveRootWarn(void *cvode_mem);
+CVodeSetNoInactiveRootWarn = getattr(sundials_cvode, 'CVodeSetNoInactiveRootWarn')
+CVodeSetNoInactiveRootWarn.argtypes = [c_void_p]
+CVodeSetNoInactiveRootWarn.restype = c_int
 #
 # /* Solver function */
 # SUNDIALS_EXPORT int CVode(void *cvode_mem, realtype tout, N_Vector yout,
