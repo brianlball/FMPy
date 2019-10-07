@@ -1,11 +1,6 @@
 from .sundials_nvector import *
 from .sundials_types import sunindextype, booleantype, realtype
-import os
-from fmpy import sharedLibraryExtension
-
-library_dir, _ = os.path.split(__file__)
-
-sundials_nvecserial = cdll.LoadLibrary(os.path.join(library_dir, 'sundials_nvecserial' + sharedLibraryExtension))
+from .libraries import sundials_nvecserial
 
 # #include <stdio.h>
 # #include <sundials/sundials_nvector.h>

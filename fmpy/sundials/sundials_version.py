@@ -1,5 +1,5 @@
 from ctypes import *
-from .cvode import sundials_cvode
+from .libraries import sundials_cvode
 
 # #include <sundials/sundials_config.h>
 #

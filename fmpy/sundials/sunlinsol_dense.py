@@ -1,12 +1,7 @@
-from ctypes import *
-import os
-from fmpy import sharedLibraryExtension
+from .libraries import sundials_sunlinsoldense
 from .sundials_linearsolver import *
 from .sundials_matrix import *
 from .sundials_nvector import *
-
-library_dir, _ = os.path.split(__file__)
-sundials_sunlinsoldense = cdll.LoadLibrary(os.path.join(library_dir, 'sundials_sunlinsoldense' + sharedLibraryExtension))
 
 # #include <sundials/sundials_linearsolver.h>
 # #include <sundials/sundials_matrix.h>

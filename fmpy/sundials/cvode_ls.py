@@ -1,5 +1,4 @@
-from .sundials_types import *
-from .cvode import *
+from .libraries import sundials_cvode
 from .sundials_matrix import *
 from .sundials_linearsolver import *
 

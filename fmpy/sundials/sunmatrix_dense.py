@@ -1,11 +1,6 @@
+from .libraries import sundials_sunmatrixdense
 from .sundials_types import *
 from .sundials_matrix import *
-import os
-from fmpy import sharedLibraryExtension
-
-library_dir, _ = os.path.split(__file__)
-sundials_sunmatrixdense = cdll.LoadLibrary(os.path.join(library_dir, 'sundials_sunmatrixdense' + sharedLibraryExtension))
-
 
 # #include <stdio.h>
 # #include <sundials/sundials_matrix.h>

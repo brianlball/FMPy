@@ -1,11 +1,6 @@
-import os
-from fmpy import sharedLibraryExtension
-from ctypes import *
+from .libraries import sundials_cvode
 from .sundials_types import *
 from .sundials_nvector import *
-
-library_dir, _ = os.path.split(__file__)
-sundials_cvode = cdll.LoadLibrary(os.path.join(library_dir, 'sundials_cvode'          + sharedLibraryExtension))
 
 # #include <stdio.h>
 # #include <sundials/sundials_nvector.h>
