@@ -5,6 +5,7 @@ import os
 import shutil
 import distutils
 import hashlib
+import platform
 
 # compile Qt UI and resources
 try:
@@ -32,11 +33,15 @@ with tarfile.open(filename, "r:gz") as tar:
     tar.extractall()
 
 print("Building CVode")
-status = os.system('cmake -B cvode-4.1.0/build -G "Visual Studio 14 2015 Win64" -DEXAMPLES_ENABLE_C=OFF -DBUILD_STATIC_LIBS=OFF EXAMPLES_INSTALL=OFF -DCMAKE_INSTALL_PREFIX=cvode-4.1.0/dist cvode-4.1.0 && cmake --build cvode-4.1.0/build --target install --config Release')
+status = os.system('cmake -B cvode-4.1.0/build -DEXAMPLES_ENABLE_C=OFF -DBUILD_STATIC_LIBS=OFF EXAMPLES_INSTALL=OFF -DCMAKE_INSTALL_PREFIX=cvode-4.1.0/dist cvode-4.1.0 && cmake --build cvode-4.1.0/build --target install --config Release')
 
-for shared_library in ['sundials_cvode.dll', 'sundials_nvecserial.dll', 'sundials_sunlinsoldense.dll', 'sundials_sunmatrixdense.dll']:
-    shutil.copyfile(os.path.join('cvode-4.1.0', 'dist', 'lib', shared_library),
-                    os.path.join('fmpy', 'sundials', shared_library))
+from fmpy import sharedLibraryExtension
+
+library_prefix = '' if platform.system() == 'Windows' else 'lib'
+
+for shared_library in ['sundials_cvode', 'sundials_nvecserial', 'sundials_sunlinsoldense', 'sundials_sunmatrixdense']:
+    shutil.copyfile(os.path.join('cvode-4.1.0', 'dist', 'lib', library_prefix + shared_library + sharedLibraryExtension),
+                    os.path.join('fmpy', 'sundials', shared_library + sharedLibraryExtension))
 
 long_description = """
 FMPy
