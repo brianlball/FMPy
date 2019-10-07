@@ -11,28 +11,12 @@ realtype = c_double
 booleantype = c_int
 
 library_dir, _ = os.path.split(__file__)
-# library_dir = os.path.join(library_dir, platform)
 
 # load SUNDIALS shared libraries
-sundials_nvecserial     = cdll.LoadLibrary(os.path.join(library_dir, 'sundials_nvecserial' + sharedLibraryExtension))
+sundials_nvecserial     = cdll.LoadLibrary(os.path.join(library_dir, 'sundials_nvecserial'     + sharedLibraryExtension))
 sundials_sunmatrixdense = cdll.LoadLibrary(os.path.join(library_dir, 'sundials_sunmatrixdense' + sharedLibraryExtension))
 sundials_sunlinsoldense = cdll.LoadLibrary(os.path.join(library_dir, 'sundials_sunlinsoldense' + sharedLibraryExtension))
-sundials_cvode          = cdll.LoadLibrary(os.path.join(library_dir, 'sundials_cvode' + sharedLibraryExtension))
-
-# sundials_nvecserial = cdll.LoadLibrary('/Users/tors10/Downloads/sundials-4.1.0/build/src/nvector/serial/Debug/libsundials_nvecserial.4.1.0.dylib')
-# sundials_sunmatrixdense = cdll.LoadLibrary('/Users/tors10/Downloads/sundials-4.1.0/build/src/sunmatrix/dense/Debug/libsundials_sunmatrixdense.2.1.0.dylib')
-# sundials_sunlinsoldense = cdll.LoadLibrary('/Users/tors10/Downloads/sundials-4.1.0/build/src/sunlinsol/dense/Debug/libsundials_sunlinsoldense.2.1.0.dylib')
-# sundials_cvode = cdll.LoadLibrary('/Users/tors10/Downloads/sundials-4.1.0/build/src/cvode/Debug/libsundials_cvode.4.1.0.dylib')
-
-# sundials_nvecserial = cdll.LoadLibrary('libsundials_nvecserial.4.1.0.dylib')
-# sundials_sunmatrixdense = cdll.LoadLibrary('libsundials_sunmatrixdense.2.1.0.dylib')
-# sundials_sunlinsoldense = cdll.LoadLibrary('libsundials_sunlinsoldense.2.1.0.dylib')
-# sundials_cvode = cdll.LoadLibrary('libsundials_cvode.4.1.0.dylib')
-
-# sundials_nvecserial = cdll.LoadLibrary(r'C:\Users\tsr2\Downloads\cvode-4.1.0.tar\cvode-4.1.0\build\src\nvector\serial\Debug\sundials_nvecserial.dll')
-# sundials_sunmatrixdense = cdll.LoadLibrary(r'C:\Users\tsr2\Downloads\cvode-4.1.0.tar\cvode-4.1.0\build\src\sunmatrix\dense\Debug\sundials_sunmatrixdense.dll')
-# sundials_sunlinsoldense = cdll.LoadLibrary(r'C:\Users\tsr2\Downloads\cvode-4.1.0.tar\cvode-4.1.0\build\src\sunlinsol\dense\Debug\sundials_sunlinsoldense.dll')
-# sundials_cvode = cdll.LoadLibrary(r'C:\Users\tsr2\Downloads\cvode-4.1.0.tar\cvode-4.1.0\build\src\cvode\Debug\sundials_cvode.dll')
+sundials_cvode          = cdll.LoadLibrary(os.path.join(library_dir, 'sundials_cvode'          + sharedLibraryExtension))
 
 # nvector_serial.h
 
