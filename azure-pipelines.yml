@@ -108,7 +108,7 @@ jobs:
       artifact: 'macosx-python-$(python.version)'
 
 - job:
-  displayName: 'Windows 2019'
+  displayName: 'Windows 2016'
   strategy:
     matrix:
       python27:
@@ -116,7 +116,7 @@ jobs:
       python36:
         python.version: '3.6'
   pool:
-    vmImage: 'windows-2019'
+    vmImage: 'vs2017-win2016'
 
   steps:
 
