@@ -593,8 +593,11 @@ def visual_c_versions():
     # Visual Studio 2017
     installation_path = visual_studio_installation_path()
 
-    if installation_path is not None and '2017' in installation_path:
-        versions.append(150)
+    if installation_path is not None:
+        if '2017' in installation_path:
+            versions.append(150)
+        if '2019' in installation_path:
+            versions.append(160)
 
     return sorted(versions)
 
