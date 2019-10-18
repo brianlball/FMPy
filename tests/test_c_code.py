@@ -66,15 +66,8 @@ class CCodeTest(unittest.TestCase):
             if not cmake_available:
                 continue  # skip compilation
 
-            if platform == 'win32':
-                generator = 'Visual Studio 15 2017'
-            elif platform == 'win64':
-                generator = 'Visual Studio 15 2017 Win64'
-            else:
-                generator = 'Unix Makefiles'
-
             # generate the build system
-            check_call(args=['cmake', '-G', generator, '.'], cwd=model_name)
+            check_call(args=['cmake', '.'], cwd=model_name)
 
             # run the build system
             check_call(args=['cmake', '--build', '.'], cwd=model_name)
