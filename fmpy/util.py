@@ -755,8 +755,8 @@ def compile_platform_binary(filename, output_filename=None):
                     zf.write(path, os.path.relpath(path, base_path))
 
     # clean up
-    rmtree(unzipdir)
-    rmtree(unzipdir2)
+    rmtree(unzipdir, ignore_errors=True)
+    rmtree(unzipdir2, ignore_errors=True)
 
 
 def auto_interval(t):
@@ -825,7 +825,7 @@ def change_fmu(input_file, output_file=None, start_values={}):
                     zf.write(path, os.path.relpath(path, base_path))
 
     # clean up
-    rmtree(tempdir)
+    rmtree(tempdir, ignore_errors=True)
 
 
 def get_start_values(filename):
@@ -902,7 +902,7 @@ def get_start_values(filename):
     fmu.freeInstance()
 
     # clean up
-    rmtree(unzipdir)
+    rmtree(unzipdir, ignore_errors=True)
 
     return start_values
 
