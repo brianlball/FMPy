@@ -25,7 +25,7 @@ with tarfile.open(filename, 'r:gz') as tar:
     tar.extractall()
 
 print("Building CVode")
-status = os.system('cmake -B cvode-5.0.0/build -DEXAMPLES_ENABLE_C=OFF -DBUILD_STATIC_LIBS=OFF EXAMPLES_INSTALL=OFF -DCMAKE_INSTALL_PREFIX=cvode-5.0.0/dist -DCMAKE_USER_MAKE_RULES_OVERRIDE:STRING=../OverrideMSVCFlags.cmake cvode-5.0.0 && ' +
+status = os.system('cmake -G "Visual Studio 15 2017 Win64" -B cvode-5.0.0/build -DEXAMPLES_ENABLE_C=OFF -DBUILD_STATIC_LIBS=OFF EXAMPLES_INSTALL=OFF -DCMAKE_INSTALL_PREFIX=cvode-5.0.0/dist -DCMAKE_USER_MAKE_RULES_OVERRIDE:STRING=../OverrideMSVCFlags.cmake cvode-5.0.0 && ' +
                    'cmake --build cvode-5.0.0/build --target install --config Release')
 
 from fmpy import sharedLibraryExtension
