@@ -5,7 +5,7 @@ import os
 from ctypes import *
 import _ctypes
 
-__version__ = '0.2.13'
+__version__ = '0.2.14'
 
 
 # determine the platform
@@ -217,3 +217,4 @@ def dump(filename):
 # make the functions available in the fmpy module
 from .model_description import read_model_description
 from .simulation import simulate_fmu
+from .util import plot_result, read_csv, write_csv
