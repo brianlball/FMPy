@@ -13,9 +13,9 @@ except Exception as e:
     print("Failed to compile resources. %s" % e)
 
 # build CVode shared libraries
-url = 'https://computing.llnl.gov/projects/sundials/download/cvode-4.1.0.tar.gz'
-filename = 'cvode-4.1.0.tar.gz'
-checksum = 'fe130b149dff00bdbe5cf04ea40f9209312d6f1e417831ec37238747c5322fff'
+url = 'https://computing.llnl.gov/projects/sundials/download/cvode-5.0.0.tar.gz'
+filename = os.path.basename(url)
+checksum = '909ae7b696ec5e10a1b13c38708adf27e9a6f9e216a64dc67924263c86add7af'
 
 from fmpy.util import download_file
 download_file(url, checksum)
@@ -25,16 +25,15 @@ with tarfile.open(filename, 'r:gz') as tar:
     tar.extractall()
 
 print("Building CVode")
-status = os.system('cmake -B cvode-4.1.0/build -DEXAMPLES_ENABLE_C=OFF -DBUILD_STATIC_LIBS=OFF EXAMPLES_INSTALL=OFF -DCMAKE_INSTALL_PREFIX=cvode-4.1.0/dist -DCMAKE_USER_MAKE_RULES_OVERRIDE:STRING=../OverrideMSVCFlags.cmake cvode-4.1.0 && ' +
-                   'cmake -B cvode-4.1.0/build -DEXAMPLES_ENABLE_C=OFF -DBUILD_STATIC_LIBS=OFF EXAMPLES_INSTALL=OFF -DCMAKE_INSTALL_PREFIX=cvode-4.1.0/dist -DCMAKE_USER_MAKE_RULES_OVERRIDE:STRING=../OverrideMSVCFlags.cmake cvode-4.1.0 && ' +
-                   'cmake --build cvode-4.1.0/build --target install --config Release')
+status = os.system('cmake -B cvode-5.0.0/build -DEXAMPLES_ENABLE_C=OFF -DBUILD_STATIC_LIBS=OFF EXAMPLES_INSTALL=OFF -DCMAKE_INSTALL_PREFIX=cvode-5.0.0/dist -DCMAKE_USER_MAKE_RULES_OVERRIDE:STRING=../OverrideMSVCFlags.cmake cvode-5.0.0 && ' +
+                   'cmake --build cvode-5.0.0/build --target install --config Release')
 
 from fmpy import sharedLibraryExtension
 
 library_prefix = '' if platform.system() == 'Windows' else 'lib'
 
 for shared_library in ['sundials_cvode', 'sundials_nvecserial', 'sundials_sunlinsoldense', 'sundials_sunmatrixdense']:
-    shutil.copyfile(os.path.join('cvode-4.1.0', 'dist', 'lib', library_prefix + shared_library + sharedLibraryExtension),
+    shutil.copyfile(os.path.join('cvode-5.0.0', 'dist', 'lib', library_prefix + shared_library + sharedLibraryExtension),
                     os.path.join('fmpy', 'sundials', shared_library + sharedLibraryExtension))
 
 long_description = """

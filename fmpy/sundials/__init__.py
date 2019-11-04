@@ -21,7 +21,7 @@ def _assert_version():
     label = create_string_buffer(len)
     status = SUNDIALSGetVersionNumber(byref(major), byref(minor), byref(patch), label, len)
     assert status == 0
-    assert major.value == 4
+    assert major.value == 5
 
 
 _assert_version()
