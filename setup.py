@@ -1,56 +1,83 @@
 from setuptools import setup
-import tarfile
 import os
 import shutil
 import distutils
-import platform
 
 # compile Qt UI and resources
 try:
     from fmpy.gui import compile_resources
     compile_resources()
 except Exception as e:
-    print("Failed to compile resources. %s" % e)
+    print("Failed to compile Qt UI and resources. %s" % e)
 
 # build CVode shared libraries
-url = 'https://computing.llnl.gov/projects/sundials/download/cvode-5.0.0.tar.gz'
-filename = os.path.basename(url)
-checksum = '909ae7b696ec5e10a1b13c38708adf27e9a6f9e216a64dc67924263c86add7af'
+try:
+    import os
+    import tarfile
+    import platform
+    import shutil
+    from fmpy.util import visual_c_versions
 
-from fmpy.util import download_file
-download_file(url, checksum)
+    url = 'https://computing.llnl.gov/projects/sundials/download/cvode-5.0.0.tar.gz'
+    filename = os.path.basename(url)
+    checksum = '909ae7b696ec5e10a1b13c38708adf27e9a6f9e216a64dc67924263c86add7af'
 
-print("Extracting %s" % filename)
-with tarfile.open(filename, 'r:gz') as tar:
-    tar.extractall()
+    from fmpy.util import download_file
 
-print("Building CVode")
-cmake_args = [
-    'cmake',
-    '-B', 'cvode-5.0.0/build',
-    '-D', 'EXAMPLES_ENABLE_C=OFF',
-    '-D', 'BUILD_STATIC_LIBS=OFF EXAMPLES_INSTALL=OFF',
-    '-D', 'CMAKE_INSTALL_PREFIX=cvode-5.0.0/dist',
-]
+    download_file(url, checksum)
 
-if os.name == 'nt':
-    cmake_args += ['-G', 'Visual Studio 15 2017 Win64']
-    cmake_args += ['-D', 'CMAKE_C_FLAGS_RELEASE="/MT /O2 /Ob2 /DNDEBUG"']
+    print("Extracting %s" % filename)
+    with tarfile.open(filename, 'r:gz') as tar:
+        tar.extractall()
 
-cmake_args += ['cvode-5.0.0']
+    print("Building CVode")
+    cmake_args = [
+        'cmake',
+        '-B', 'cvode-5.0.0/build',
+        '-D', 'EXAMPLES_ENABLE_C=OFF',
+        '-D', 'BUILD_STATIC_LIBS=OFF EXAMPLES_INSTALL=OFF',
+        '-D', 'CMAKE_INSTALL_PREFIX=cvode-5.0.0/dist',
+    ]
 
-from subprocess import check_call
+    vc_versions = visual_c_versions()
 
-check_call(args=cmake_args)
-check_call(args=['cmake', '--build', 'cvode-5.0.0/build', '--target', 'install', '--config', 'Release'])
+    if os.name == 'nt':
 
-from fmpy import sharedLibraryExtension
+        # set a 64-bit generator
+        if 160 in vc_versions:
+            cmake_args += ['-G', 'Visual Studio 16 2019', '-A', 'x64']
+        elif 150 in vc_versions:
+            cmake_args += ['-G', 'Visual Studio 15 2017 Win64']
+        elif 140 in vc_versions:
+            cmake_args += ['-G', 'Visual Studio 14 2015 Win64']
+        elif 120 in vc_versions:
+            cmake_args += ['-G', 'Visual Studio 12 2013 Win64']
+        elif 110 in vc_versions:
+            cmake_args += ['-G', 'Visual Studio 11 2012 Win64']
 
-library_prefix = '' if platform.system() == 'Windows' else 'lib'
+        # link statically against the VC runtime
+        cmake_args += ['-D', 'CMAKE_USER_MAKE_RULES_OVERRIDE:STRING=../OverrideMSVCFlags.cmake']
 
-for shared_library in ['sundials_cvode', 'sundials_nvecserial', 'sundials_sunlinsoldense', 'sundials_sunmatrixdense']:
-    shutil.copyfile(os.path.join('cvode-5.0.0', 'dist', 'lib', library_prefix + shared_library + sharedLibraryExtension),
-                    os.path.join('fmpy', 'sundials', shared_library + sharedLibraryExtension))
+    cmake_args += ['cvode-5.0.0']
+
+    from subprocess import check_call
+
+    check_call(args=cmake_args)
+    check_call(args=['cmake', '--build', 'cvode-5.0.0/build', '--target', 'install', '--config', 'Release'])
+
+    from fmpy import sharedLibraryExtension
+
+    library_prefix = '' if platform.system() == 'Windows' else 'lib'
+
+    sundials_dir = os.path.dirname(__file__)
+
+    for shared_library in ['sundials_cvode', 'sundials_nvecserial', 'sundials_sunlinsoldense',
+                           'sundials_sunmatrixdense']:
+        shutil.copyfile(
+            os.path.join('cvode-5.0.0', 'dist', 'lib', library_prefix + shared_library + sharedLibraryExtension),
+            os.path.join(sundials_dir, shared_library + sharedLibraryExtension))
+except Exception as e:
+    print("Failed to compile CVode shared libraries. %s" % e)
 
 long_description = """
 FMPy
