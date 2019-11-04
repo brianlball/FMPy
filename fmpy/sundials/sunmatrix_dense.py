@@ -2,6 +2,39 @@ from .libraries import sundials_sunmatrixdense
 from .sundials_types import *
 from .sundials_matrix import *
 
+# /*
+#  * -----------------------------------------------------------------
+#  * Programmer(s): Daniel Reynolds @ SMU
+#  *                David Gardner @ LLNL
+#  * Based on code sundials_direct.h by: Radu Serban @ LLNL
+#  * -----------------------------------------------------------------
+#  * SUNDIALS Copyright Start
+#  * Copyright (c) 2002-2019, Lawrence Livermore National Security
+#  * and Southern Methodist University.
+#  * All rights reserved.
+#  *
+#  * See the top-level LICENSE and NOTICE files for details.
+#  *
+#  * SPDX-License-Identifier: BSD-3-Clause
+#  * SUNDIALS Copyright End
+#  * -----------------------------------------------------------------
+#  * This is the header file for the dense implementation of the
+#  * SUNMATRIX module, SUNMATRIX_DENSE.
+#  *
+#  * Notes:
+#  *   - The definition of the generic SUNMatrix structure can be found
+#  *     in the header file sundials_matrix.h.
+#  *   - The definition of the type 'realtype' can be found in the
+#  *     header file sundials_types.h, and it may be changed (at the
+#  *     configuration stage) according to the user's needs.
+#  *     The sundials_types.h file also contains the definition
+#  *     for the type 'booleantype' and 'indextype'.
+#  * -----------------------------------------------------------------
+#  */
+#
+# #ifndef _SUNMATRIX_DENSE_H
+# #define _SUNMATRIX_DENSE_H
+#
 # #include <stdio.h>
 # #include <sundials/sundials_matrix.h>
 #
@@ -70,3 +103,10 @@ SUNDenseMatrix.restype = SUNMatrix
 # SUNDIALS_EXPORT int SUNMatScaleAddI_Dense(realtype c, SUNMatrix A);
 # SUNDIALS_EXPORT int SUNMatMatvec_Dense(SUNMatrix A, N_Vector x, N_Vector y);
 # SUNDIALS_EXPORT int SUNMatSpace_Dense(SUNMatrix A, long int *lenrw, long int *leniw);
+#
+#
+# #ifdef __cplusplus
+# }
+# #endif
+#
+# #endif

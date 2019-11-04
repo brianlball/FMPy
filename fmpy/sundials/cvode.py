@@ -2,6 +2,26 @@ from .libraries import sundials_cvode
 from .sundials_types import *
 from .sundials_nvector import *
 
+# /* -----------------------------------------------------------------
+#  * Programmer(s): Scott D. Cohen, Alan C. Hindmarsh, Radu Serban,
+#  *                and Dan Shumaker @ LLNL
+#  * -----------------------------------------------------------------
+#  * SUNDIALS Copyright Start
+#  * Copyright (c) 2002-2019, Lawrence Livermore National Security
+#  * and Southern Methodist University.
+#  * All rights reserved.
+#  *
+#  * See the top-level LICENSE and NOTICE files for details.
+#  *
+#  * SPDX-License-Identifier: BSD-3-Clause
+#  * SUNDIALS Copyright End
+#  * -----------------------------------------------------------------
+#  * This is the header file for the main CVODE integrator.
+#  * -----------------------------------------------------------------*/
+#
+# #ifndef _CVODE_H
+# #define _CVODE_H
+#
 # #include <stdio.h>
 # #include <sundials/sundials_nvector.h>
 # #include <sundials/sundials_nonlinearsolver.h>
@@ -52,6 +72,7 @@ CV_SUCCESS = 0
 # #define CV_NLS_INIT_FAIL        -13
 # #define CV_NLS_SETUP_FAIL       -14
 # #define CV_CONSTR_FAIL          -15
+# #define CV_NLS_FAIL             -16
 #
 # #define CV_MEM_FAIL             -20
 # #define CV_MEM_NULL             -21
@@ -62,6 +83,9 @@ CV_SUCCESS = 0
 # #define CV_BAD_DKY              -26
 # #define CV_TOO_CLOSE            -27
 # #define CV_VECTOROP_ERR         -28
+#
+# #define CV_UNRECOGNIZED_ERR     -99
+#
 #
 # /* ------------------------------
 #  * User-Supplied Function Types
@@ -174,11 +198,13 @@ CVode.restype = c_int
 #                                             long int *netfails);
 # SUNDIALS_EXPORT int CVodeGetLastOrder(void *cvode_mem, int *qlast);
 # SUNDIALS_EXPORT int CVodeGetCurrentOrder(void *cvode_mem, int *qcur);
+# SUNDIALS_EXPORT int CVodeGetCurrentGamma(void *cvode_mem, realtype *gamma);
 # SUNDIALS_EXPORT int CVodeGetNumStabLimOrderReds(void *cvode_mem,
 #                                                 long int *nslred);
 # SUNDIALS_EXPORT int CVodeGetActualInitStep(void *cvode_mem, realtype *hinused);
 # SUNDIALS_EXPORT int CVodeGetLastStep(void *cvode_mem, realtype *hlast);
 # SUNDIALS_EXPORT int CVodeGetCurrentStep(void *cvode_mem, realtype *hcur);
+# SUNDIALS_EXPORT int CVodeGetCurrentState(void *cvode_mem, N_Vector *y);
 # SUNDIALS_EXPORT int CVodeGetCurrentTime(void *cvode_mem, realtype *tcur);
 # SUNDIALS_EXPORT int CVodeGetTolScaleFactor(void *cvode_mem, realtype *tolsfac);
 # SUNDIALS_EXPORT int CVodeGetErrWeights(void *cvode_mem, N_Vector eweight);
@@ -205,3 +231,10 @@ CVode.restype = c_int
 CVodeFree = getattr(sundials_cvode, 'CVodeFree')
 CVodeFree.argtypes = [POINTER(c_void_p)]
 CVodeFree.restype = None
+#
+#
+# #ifdef __cplusplus
+# }
+# #endif
+#
+# #endif

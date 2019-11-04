@@ -2,6 +2,46 @@ from .sundials_nvector import *
 from .sundials_types import sunindextype, booleantype, realtype
 from .libraries import sundials_nvecserial
 
+# /* -----------------------------------------------------------------
+#  * Programmer(s): Scott D. Cohen, Alan C. Hindmarsh, Radu Serban,
+#  *                and Aaron Collier @ LLNL
+#  * -----------------------------------------------------------------
+#  * SUNDIALS Copyright Start
+#  * Copyright (c) 2002-2019, Lawrence Livermore National Security
+#  * and Southern Methodist University.
+#  * All rights reserved.
+#  *
+#  * See the top-level LICENSE and NOTICE files for details.
+#  *
+#  * SPDX-License-Identifier: BSD-3-Clause
+#  * SUNDIALS Copyright End
+#  * -----------------------------------------------------------------
+#  * This is the header file for the serial implementation of the
+#  * NVECTOR module.
+#  *
+#  * Notes:
+#  *
+#  *   - The definition of the generic N_Vector structure can be found
+#  *     in the header file sundials_nvector.h.
+#  *
+#  *   - The definition of the type 'realtype' can be found in the
+#  *     header file sundials_types.h, and it may be changed (at the
+#  *     configuration stage) according to the user's needs.
+#  *     The sundials_types.h file also contains the definition
+#  *     for the type 'booleantype'.
+#  *
+#  *   - N_Vector arguments to arithmetic vector operations need not
+#  *     be distinct. For example, the following call:
+#  *
+#  *       N_VLinearSum_Serial(a,x,b,y,y);
+#  *
+#  *     (which stores the result of the operation a*x+b*y in y)
+#  *     is legal.
+#  * -----------------------------------------------------------------*/
+#
+# #ifndef _NVECTOR_SERIAL_H
+# #define _NVECTOR_SERIAL_H
+#
 # #include <stdio.h>
 # #include <sundials/sundials_nvector.h>
 #
@@ -64,11 +104,11 @@ N_VNew_Serial.restype = N_Vector
 #
 # SUNDIALS_EXPORT N_Vector N_VMake_Serial(sunindextype vec_length, realtype *v_data);
 #
-# SUNDIALS_EXPORT N_Vector *N_VCloneVectorArray_Serial(int count, N_Vector w);
+# SUNDIALS_EXPORT N_Vector* N_VCloneVectorArray_Serial(int count, N_Vector w);
 #
-# SUNDIALS_EXPORT N_Vector *N_VCloneVectorArrayEmpty_Serial(int count, N_Vector w);
+# SUNDIALS_EXPORT N_Vector* N_VCloneVectorArrayEmpty_Serial(int count, N_Vector w);
 #
-# SUNDIALS_EXPORT void N_VDestroyVectorArray_Serial(N_Vector *vs, int count);
+# SUNDIALS_EXPORT void N_VDestroyVectorArray_Serial(N_Vector* vs, int count);
 #
 # SUNDIALS_EXPORT sunindextype N_VGetLength_Serial(N_Vector v);
 #
@@ -114,7 +154,7 @@ N_VDestroy_Serial.restype = None
 # SUNDIALS_EXPORT int N_VScaleAddMulti_Serial(int nvec, realtype* a, N_Vector x,
 #                                             N_Vector* Y, N_Vector* Z);
 # SUNDIALS_EXPORT int N_VDotProdMulti_Serial(int nvec, N_Vector x,
-#                                            N_Vector *Y, realtype* dotprods);
+#                                            N_Vector* Y, realtype* dotprods);
 #
 # /* vector array operations */
 # SUNDIALS_EXPORT int N_VLinearSumVectorArray_Serial(int nvec,
@@ -139,6 +179,10 @@ N_VDestroy_Serial.restype = None
 #                                                            realtype* c,
 #                                                            N_Vector** X,
 #                                                            N_Vector* Z);
+#
+# /* OPTIONAL local reduction kernels (no parallel communication) */
+# SUNDIALS_EXPORT realtype N_VWSqrSumLocal_Serial(N_Vector x, N_Vector w);
+# SUNDIALS_EXPORT realtype N_VWSqrSumMaskLocal_Serial(N_Vector x, N_Vector w, N_Vector id);
 #
 # /*
 #  * -----------------------------------------------------------------

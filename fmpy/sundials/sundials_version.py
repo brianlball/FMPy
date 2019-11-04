@@ -1,6 +1,25 @@
 from ctypes import *
 from .libraries import sundials_cvode
 
+# /* -----------------------------------------------------------------
+#  * Programmer(s): David J. Gardner @ LLNL
+#  * -----------------------------------------------------------------
+#  * SUNDIALS Copyright Start
+#  * Copyright (c) 2002-2019, Lawrence Livermore National Security
+#  * and Southern Methodist University.
+#  * All rights reserved.
+#  *
+#  * See the top-level LICENSE and NOTICE files for details.
+#  *
+#  * SPDX-License-Identifier: BSD-3-Clause
+#  * SUNDIALS Copyright End
+#  * -----------------------------------------------------------------
+#  * This header file is for routines to get SUNDIALS version info
+#  * -----------------------------------------------------------------*/
+#
+# #ifndef _SUNDIALS_VERSION_H
+# #define _SUNDIALS_VERSION_H
+#
 # #include <sundials/sundials_config.h>
 #
 # #ifdef __cplusplus  /* wrapper to enable C++ usage */
@@ -17,3 +36,10 @@ from .libraries import sundials_cvode
 SUNDIALSGetVersionNumber = getattr(sundials_cvode, 'SUNDIALSGetVersionNumber')
 SUNDIALSGetVersionNumber.argtypes = [POINTER(c_int), POINTER(c_int), POINTER(c_int), c_char_p, c_int]
 SUNDIALSGetVersionNumber.restype = c_int
+#
+# #ifdef __cplusplus
+# }
+# #endif
+#
+# #endif
+

@@ -1,6 +1,57 @@
 from ctypes import *
 
+# /* -----------------------------------------------------------------
+#  * Programmer(s): Radu Serban and Aaron Collier @ LLNL
+#  * -----------------------------------------------------------------
+#  * SUNDIALS Copyright Start
+#  * Copyright (c) 2002-2019, Lawrence Livermore National Security
+#  * and Southern Methodist University.
+#  * All rights reserved.
+#  *
+#  * See the top-level LICENSE and NOTICE files for details.
+#  *
+#  * SPDX-License-Identifier: BSD-3-Clause
+#  * SUNDIALS Copyright End
+#  * -----------------------------------------------------------------
+#  * This is the header file for a generic NVECTOR package.
+#  * It defines the N_Vector structure (_generic_N_Vector) which
+#  * contains the following fields:
+#  *   - an implementation-dependent 'content' field which contains
+#  *     the description and actual data of the vector
+#  *   - an 'ops' filed which contains a structure listing operations
+#  *     acting on such vectors
+#  * -----------------------------------------------------------------
+#  * This header file contains:
+#  *   - enumeration constants for all SUNDIALS-defined vector types,
+#  *     as well as a generic type for user-supplied vector types,
+#  *   - type declarations for the _generic_N_Vector and
+#  *     _generic_N_Vector_Ops structures, as well as references to
+#  *     pointers to such structures (N_Vector), and
+#  *   - prototypes for the vector functions which operate on
+#  *     N_Vector objects.
+#  * -----------------------------------------------------------------
+#  * At a minimum, a particular implementation of an NVECTOR must
+#  * do the following:
+#  *   - specify the 'content' field of N_Vector,
+#  *   - implement the operations on those N_Vector objects,
+#  *   - provide a constructor routine for new N_Vector objects
+#  *
+#  * Additionally, an NVECTOR implementation may provide the following:
+#  *   - macros to access the underlying N_Vector data
+#  *   - a constructor for an array of N_Vectors
+#  *   - a constructor for an empty N_Vector (i.e., a new N_Vector with
+#  *     a NULL data pointer).
+#  *   - a routine to print the content of an N_Vector
+#  * -----------------------------------------------------------------*/
+#
+# #ifndef _NVECTOR_H
+# #define _NVECTOR_H
+#
 # #include <sundials/sundials_types.h>
+#
+# #ifdef __cplusplus  /* wrapper to enable C++ usage */
+# extern "C" {
+# #endif
 #
 #
 # /* -----------------------------------------------------------------
@@ -18,6 +69,9 @@ from ctypes import *
 #   SUNDIALS_NVEC_RAJA,
 #   SUNDIALS_NVEC_OPENMPDEV,
 #   SUNDIALS_NVEC_TRILINOS,
+#   SUNDIALS_NVEC_MANYVECTOR,
+#   SUNDIALS_NVEC_MPIMANYVECTOR,
+#   SUNDIALS_NVEC_MPIPLUSX,
 #   SUNDIALS_NVEC_CUSTOM
 # } N_Vector_ID;
 #
@@ -27,27 +81,25 @@ from ctypes import *
 #  * ----------------------------------------------------------------- */
 #
 # /* Forward reference for pointer to N_Vector_Ops object */
-# typedef struct _generic_N_Vector_Ops *N_Vector_Ops;
-class _generic_N_Vector(Structure):
-    _fields_ = [('content',               c_void_p),
-                ('_generic_N_Vector_Ops', c_void_p)]
-
+# typedef _SUNDIALS_STRUCT_ _generic_N_Vector_Ops *N_Vector_Ops;
+#
 # /* Forward reference for pointer to N_Vector object */
-# typedef struct _generic_N_Vector *N_Vector;
-N_Vector = POINTER(_generic_N_Vector)
-
+# typedef _SUNDIALS_STRUCT_ _generic_N_Vector *N_Vector;
+#
 # /* Define array of N_Vectors */
 # typedef N_Vector *N_Vector_S;
 #
 # /* Structure containing function pointers to vector operations  */
 # struct _generic_N_Vector_Ops {
-#   N_Vector_ID (*nvgetvectorid)(N_Vector);
-#   N_Vector    (*nvclone)(N_Vector);
-#   N_Vector    (*nvcloneempty)(N_Vector);
-#   void        (*nvdestroy)(N_Vector);
-#   void        (*nvspace)(N_Vector, sunindextype *, sunindextype *);
-#   realtype*   (*nvgetarraypointer)(N_Vector);
-#   void        (*nvsetarraypointer)(realtype *, N_Vector);
+#   N_Vector_ID  (*nvgetvectorid)(N_Vector);
+#   N_Vector     (*nvclone)(N_Vector);
+#   N_Vector     (*nvcloneempty)(N_Vector);
+#   void         (*nvdestroy)(N_Vector);
+#   void         (*nvspace)(N_Vector, sunindextype *, sunindextype *);
+#   realtype*    (*nvgetarraypointer)(N_Vector);
+#   void         (*nvsetarraypointer)(realtype *, N_Vector);
+#   void*        (*nvgetcommunicator)(N_Vector);
+#   sunindextype (*nvgetlength)(N_Vector);
 #
 #   /* standard vector operations */
 #   void        (*nvlinearsum)(realtype, N_Vector, realtype, N_Vector, N_Vector);
@@ -81,12 +133,20 @@ N_Vector = POINTER(_generic_N_Vector)
 #   int (*nvscalevectorarray)(int, realtype*, N_Vector*, N_Vector*);
 #   int (*nvconstvectorarray)(int, realtype, N_Vector*);
 #   int (*nvwrmsnormvectorarray)(int, N_Vector*, N_Vector*, realtype*);
-#   int (*nvwrmsnormmaskvectorarray)(int, N_Vector*, N_Vector*, N_Vector,
-#                                    realtype*);
-#   int (*nvscaleaddmultivectorarray)(int, int, realtype*, N_Vector*, N_Vector**,
-#                                     N_Vector**);
-#   int (*nvlinearcombinationvectorarray)(int, int, realtype*, N_Vector**,
-#                                         N_Vector*);
+#   int (*nvwrmsnormmaskvectorarray)(int, N_Vector*, N_Vector*, N_Vector, realtype*);
+#   int (*nvscaleaddmultivectorarray)(int, int, realtype*, N_Vector*, N_Vector**, N_Vector**);
+#   int (*nvlinearcombinationvectorarray)(int, int, realtype*, N_Vector**, N_Vector*);
+#
+#   /* OPTIONAL local reduction kernels (no parallel communication) */
+#   realtype (*nvdotprodlocal)(N_Vector, N_Vector);
+#   realtype (*nvmaxnormlocal)(N_Vector);
+#   realtype (*nvminlocal)(N_Vector);
+#   realtype (*nvl1normlocal)(N_Vector);
+#   booleantype (*nvinvtestlocal)(N_Vector, N_Vector);
+#   booleantype (*nvconstrmasklocal)(N_Vector, N_Vector, N_Vector);
+#   realtype (*nvminquotientlocal)(N_Vector, N_Vector);
+#   realtype (*nvwsqrsumlocal)(N_Vector, N_Vector);
+#   realtype (*nvwsqrsummasklocal)(N_Vector, N_Vector, N_Vector);
 # };
 #
 # /* A vector is a structure with an implementation-dependent
@@ -94,13 +154,20 @@ N_Vector = POINTER(_generic_N_Vector)
 #    operations corresponding to that implementation. */
 # struct _generic_N_Vector {
 #   void *content;
-#   struct _generic_N_Vector_Ops *ops;
+#   N_Vector_Ops ops;
 # };
+class _generic_N_Vector(Structure):
+    _fields_ = [('content',               c_void_p),
+                ('_generic_N_Vector_Ops', c_void_p)]
 #
 #
 # /* -----------------------------------------------------------------
 #  * Functions exported by NVECTOR module
 #  * ----------------------------------------------------------------- */
+#
+# SUNDIALS_EXPORT N_Vector N_VNewEmpty();
+# SUNDIALS_EXPORT void N_VFreeEmpty(N_Vector v);
+# SUNDIALS_EXPORT int N_VCopyOps(N_Vector w, N_Vector v);
 #
 # SUNDIALS_EXPORT N_Vector_ID N_VGetVectorID(N_Vector w);
 # SUNDIALS_EXPORT N_Vector N_VClone(N_Vector w);
@@ -109,6 +176,8 @@ N_Vector = POINTER(_generic_N_Vector)
 # SUNDIALS_EXPORT void N_VSpace(N_Vector v, sunindextype *lrw, sunindextype *liw);
 # SUNDIALS_EXPORT realtype *N_VGetArrayPointer(N_Vector v);
 # SUNDIALS_EXPORT void N_VSetArrayPointer(realtype *v_data, N_Vector v);
+# SUNDIALS_EXPORT void *N_VGetCommunicator(N_Vector v);
+# SUNDIALS_EXPORT sunindextype N_VGetLength(N_Vector v);
 #
 # /* standard vector operations */
 # SUNDIALS_EXPORT void N_VLinearSum(realtype a, N_Vector x, realtype b,
@@ -132,7 +201,7 @@ N_Vector = POINTER(_generic_N_Vector)
 # SUNDIALS_EXPORT booleantype N_VConstrMask(N_Vector c, N_Vector x, N_Vector m);
 # SUNDIALS_EXPORT realtype N_VMinQuotient(N_Vector num, N_Vector denom);
 #
-# /* fused vector operations */
+# /* OPTIONAL fused vector operations */
 # SUNDIALS_EXPORT int N_VLinearCombination(int nvec, realtype* c, N_Vector* X,
 #                                          N_Vector z);
 #
@@ -142,7 +211,7 @@ N_Vector = POINTER(_generic_N_Vector)
 # SUNDIALS_EXPORT int N_VDotProdMulti(int nvec, N_Vector x, N_Vector* Y,
 #                                     realtype* dotprods);
 #
-# /* vector array operations */
+# /* OPTIONAL vector array operations */
 # SUNDIALS_EXPORT int N_VLinearSumVectorArray(int nvec,
 #                                             realtype a, N_Vector* X,
 #                                             realtype b, N_Vector* Y,
@@ -168,11 +237,35 @@ N_Vector = POINTER(_generic_N_Vector)
 #                                                     realtype* c, N_Vector** X,
 #                                                     N_Vector* Z);
 #
+# /* OPTIONAL local reduction kernels (no parallel communication) */
+# SUNDIALS_EXPORT realtype N_VDotProdLocal(N_Vector x, N_Vector y);
+# SUNDIALS_EXPORT realtype N_VMaxNormLocal(N_Vector x);
+# SUNDIALS_EXPORT realtype N_VMinLocal(N_Vector x);
+# SUNDIALS_EXPORT realtype N_VL1NormLocal(N_Vector x);
+# SUNDIALS_EXPORT realtype N_VWSqrSumLocal(N_Vector x, N_Vector w);
+# SUNDIALS_EXPORT realtype N_VWSqrSumMaskLocal(N_Vector x, N_Vector w, N_Vector id);
+# SUNDIALS_EXPORT booleantype N_VInvTestLocal(N_Vector x, N_Vector z);
+# SUNDIALS_EXPORT booleantype N_VConstrMaskLocal(N_Vector c, N_Vector x, N_Vector m);
+# SUNDIALS_EXPORT realtype N_VMinQuotientLocal(N_Vector num, N_Vector denom);
+#
 #
 # /* -----------------------------------------------------------------
 #  * Additional functions exported by NVECTOR module
 #  * ----------------------------------------------------------------- */
 #
-# SUNDIALS_EXPORT N_Vector *N_VCloneEmptyVectorArray(int count, N_Vector w);
-# SUNDIALS_EXPORT N_Vector *N_VCloneVectorArray(int count, N_Vector w);
-# SUNDIALS_EXPORT void N_VDestroyVectorArray(N_Vector *vs, int count);
+# SUNDIALS_EXPORT N_Vector* N_VNewVectorArray(int count);
+# SUNDIALS_EXPORT N_Vector* N_VCloneEmptyVectorArray(int count, N_Vector w);
+# SUNDIALS_EXPORT N_Vector* N_VCloneVectorArray(int count, N_Vector w);
+# SUNDIALS_EXPORT void N_VDestroyVectorArray(N_Vector* vs, int count);
+#
+# /* These function are really only for users of the Fortran interface */
+# SUNDIALS_EXPORT N_Vector N_VGetVecAtIndexVectorArray(N_Vector* vs, int index);
+# SUNDIALS_EXPORT void N_VSetVecAtIndexVectorArray(N_Vector* vs, int index, N_Vector w);
+#
+# #ifdef __cplusplus
+# }
+# #endif
+#
+# #endif
+
+N_Vector = POINTER(_generic_N_Vector)
