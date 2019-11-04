@@ -12,19 +12,18 @@ except Exception as e:
 
 # build CVode shared libraries
 try:
-    import os
     import tarfile
-    import platform
     import shutil
-    from fmpy.util import visual_c_versions
+    from subprocess import check_call
+    from fmpy import sharedLibraryExtension
+    from fmpy.util import download_file, visual_c_versions
 
     url = 'https://computing.llnl.gov/projects/sundials/download/cvode-5.0.0.tar.gz'
-    filename = os.path.basename(url)
     checksum = '909ae7b696ec5e10a1b13c38708adf27e9a6f9e216a64dc67924263c86add7af'
 
-    from fmpy.util import download_file
-
     download_file(url, checksum)
+
+    filename = os.path.basename(url)
 
     print("Extracting %s" % filename)
     with tarfile.open(filename, 'r:gz') as tar:
@@ -35,7 +34,8 @@ try:
         'cmake',
         '-B', 'cvode-5.0.0/build',
         '-D', 'EXAMPLES_ENABLE_C=OFF',
-        '-D', 'BUILD_STATIC_LIBS=OFF EXAMPLES_INSTALL=OFF',
+        '-D', 'BUILD_STATIC_LIBS=OFF',
+        '-D', 'EXAMPLES_INSTALL=OFF',
         '-D', 'CMAKE_INSTALL_PREFIX=cvode-5.0.0/dist',
     ]
 
@@ -60,22 +60,16 @@ try:
 
     cmake_args += ['cvode-5.0.0']
 
-    from subprocess import check_call
-
     check_call(args=cmake_args)
     check_call(args=['cmake', '--build', 'cvode-5.0.0/build', '--target', 'install', '--config', 'Release'])
 
-    from fmpy import sharedLibraryExtension
-
-    library_prefix = '' if platform.system() == 'Windows' else 'lib'
-
-    sundials_dir = os.path.dirname(__file__)
+    library_prefix = '' if os.name == 'nt' else 'lib'
 
     for shared_library in ['sundials_cvode', 'sundials_nvecserial', 'sundials_sunlinsoldense',
                            'sundials_sunmatrixdense']:
         shutil.copyfile(
             os.path.join('cvode-5.0.0', 'dist', 'lib', library_prefix + shared_library + sharedLibraryExtension),
-            os.path.join(sundials_dir, shared_library + sharedLibraryExtension))
+            os.path.join('fmpy', 'sundials', shared_library + sharedLibraryExtension))
 except Exception as e:
     print("Failed to compile CVode shared libraries. %s" % e)
 
