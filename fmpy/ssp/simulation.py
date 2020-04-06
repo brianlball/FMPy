@@ -69,13 +69,15 @@ def set_parameters(component, parameter_set):
             set_value(component, variable_name, parameter.value)
 
 
-def instantiate_fmu(component, ssp_unzipdir, start_time, stop_time=None, parameter_set=None):
+def instantiate_fmu(component, ssp_unzipdir, start_time, stop_time=None, run_dir=None, parameter_set=None):
     """ Instantiate an FMU """
 
     fmu_filename = os.path.join(ssp_unzipdir, component.source)
 
-    component.unzipdir = extract(fmu_filename)
-
+    if run_dir is not None:
+        component.unzipdir = extract(fmu_filename, run_dir + '/' + component.name)
+    else:
+        component.unzipdir = extract(fmu_filename)
     # read the model description
     model_description = read_model_description(fmu_filename, validate=False)
 
@@ -114,10 +116,11 @@ def free_fmu(component):
 
     component.fmu.terminate()
     component.fmu.freeInstance()
-    try:
-        shutil.rmtree(component.unzipdir)
-    except Exception as e:
-        print("Failed to remove unzip directory. " + str(e))
+    #TODO
+    #try:
+    #    shutil.rmtree(component.unzipdir)
+    #except Exception as e:
+    #    print("Failed to remove unzip directory. " + str(e))
 
 
 def do_step(component, time, step_size):
@@ -173,7 +176,10 @@ def simulate_ssp(ssp_filename, start_time=0.0, stop_time=None, step_size=None, r
     connections = new_connections
 
     # extract the SSP
-    ssp_unzipdir = extract(ssp_filename, run_dir)
+    if run_dir is not None:
+        ssp_unzipdir = extract(ssp_filename, run_dir + '/ssp')
+    else:
+        ssp_unzipdir = extract(ssp_filename)
 
     # initialize the connectors
     for connector in connectors:
@@ -181,7 +187,7 @@ def simulate_ssp(ssp_filename, start_time=0.0, stop_time=None, step_size=None, r
 
     # instantiate the FMUs
     for component in components:
-        instantiate_fmu(component, ssp_unzipdir, start_time, stop_time, parameter_set)
+        instantiate_fmu(component, ssp_unzipdir, start_time, stop_time, run_dir, parameter_set)
 
     time = start_time
 
@@ -220,7 +226,8 @@ def simulate_ssp(ssp_filename, start_time=0.0, stop_time=None, step_size=None, r
         free_fmu(component)
 
     # clean up
-    shutil.rmtree(ssp_unzipdir)
+    #TODO
+    #shutil.rmtree(ssp_unzipdir)
 
     dtype = [('time', np.float64)]
 
