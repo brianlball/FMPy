@@ -137,7 +137,7 @@ def do_step(component, time, step_size):
             connector.value = get_value(component, connector.name)
 
 
-def simulate_ssp(ssp_filename, start_time=0.0, stop_time=None, step_size=None, run_dir=None, parameter_set=None, input={}):
+def simulate_ssp(ssp_filename, start_time=0.0, stop_time=None, step_size=None, parameter_set=None, input={}):
     """ Simulate a system of FMUs """
 
     if stop_time is None:
@@ -173,7 +173,7 @@ def simulate_ssp(ssp_filename, start_time=0.0, stop_time=None, step_size=None, r
     connections = new_connections
 
     # extract the SSP
-    ssp_unzipdir = extract(ssp_filename, run_dir)
+    ssp_unzipdir = extract(ssp_filename)
 
     # initialize the connectors
     for connector in connectors:
