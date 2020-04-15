@@ -264,7 +264,7 @@ def plot_result(result, reference=None, names=None, filename=None, window_title=
     import matplotlib.pyplot as plt
     import matplotlib.transforms as mtransforms
     from matplotlib.ticker import MaxNLocator
-    from collections import Iterable
+    from collections.abc import Iterable
 
     params = {
         'legend.fontsize': 8,
@@ -436,7 +436,7 @@ def download_file(url, checksum=None):
 
     if checksum is not None and os.path.isfile(filename):
         hash = sha256_checksum(filename)
-        if hash.startswith(checksum):
+        if hash.startswith(checksum.lower()):
             return  # file already exists
 
     import requests
@@ -460,6 +460,11 @@ def download_file(url, checksum=None):
     # write the file
     with open(filename, 'wb') as f:
         f.write(response.content)
+
+    if checksum is not None:
+        hash = sha256_checksum(filename)
+        if not hash.startswith(checksum):
+            raise Exception("%s has the wrong SHA256 checksum. Expected %s but was %s." % (filename, checksum, hash))
 
 
 def download_test_file(fmi_version, fmi_type, tool_name, tool_version, model_name, filename):
@@ -588,8 +593,11 @@ def visual_c_versions():
     # Visual Studio 2017
     installation_path = visual_studio_installation_path()
 
-    if installation_path is not None and '2017' in installation_path:
-        versions.append(150)
+    if installation_path is not None:
+        if '2017' in installation_path:
+            versions.append(150)
+        if '2019' in installation_path:
+            versions.append(160)
 
     return sorted(versions)
 
@@ -747,8 +755,60 @@ def compile_platform_binary(filename, output_filename=None):
                     zf.write(path, os.path.relpath(path, base_path))
 
     # clean up
-    rmtree(unzipdir)
-    rmtree(unzipdir2)
+    rmtree(unzipdir, ignore_errors=True)
+    rmtree(unzipdir2, ignore_errors=True)
+
+
+def add_remoting(filename):
+
+    from . import extract, read_model_description, supported_platforms
+    from shutil import copyfile, rmtree
+    import zipfile
+    import os
+
+    platforms = supported_platforms(filename)
+
+    if 'win32' not in platforms:
+        raise Exception("The FMU does not support the platform \"win32\".")
+
+    if 'win64' in platforms:
+        raise Exception("The FMU already supports \"win64\".")
+
+    model_description = read_model_description(filename)
+
+    current_dir = os.path.dirname(__file__)
+    client = os.path.join(current_dir, 'remoting', 'client.dll')
+    server = os.path.join(current_dir, 'remoting', 'server.exe')
+    license = os.path.join(current_dir, 'remoting', 'license.txt')
+
+    tempdir = extract(filename)
+
+    if model_description.coSimulation is not None:
+        model_identifier = model_description.coSimulation.modelIdentifier
+    else:
+        model_identifier = model_description.modelExchange.modelIdentifier
+
+    # copy the binaries & license
+    os.mkdir(os.path.join(tempdir, 'binaries', 'win64'))
+    copyfile(client, os.path.join(tempdir, 'binaries', 'win64', model_identifier + '.dll'))
+    copyfile(server, os.path.join(tempdir, 'binaries', 'win64', 'server.exe'))
+    os.mkdir(os.path.join(tempdir, 'documentation', 'licenses'))
+    copyfile(license, os.path.join(tempdir, 'documentation', 'licenses', 'fmpy-remoting-binaries.txt'))
+
+    # create a new archive from the existing files + remoting binaries
+    with zipfile.ZipFile(filename, 'w', zipfile.ZIP_DEFLATED) as zf:
+        base_path = os.path.normpath(tempdir)
+        for dirpath, dirnames, filenames in os.walk(tempdir):
+            for name in sorted(dirnames):
+                path = os.path.normpath(os.path.join(dirpath, name))
+                zf.write(path, os.path.relpath(path, base_path))
+            for name in filenames:
+                path = os.path.normpath(os.path.join(dirpath, name))
+                if os.path.isfile(path):
+                    zf.write(path, os.path.relpath(path, base_path))
+
+    # clean up
+    rmtree(tempdir, ignore_errors=True)
 
 
 def auto_interval(t):
@@ -817,7 +877,7 @@ def change_fmu(input_file, output_file=None, start_values={}):
                     zf.write(path, os.path.relpath(path, base_path))
 
     # clean up
-    rmtree(tempdir)
+    rmtree(tempdir, ignore_errors=True)
 
 
 def get_start_values(filename):
@@ -894,7 +954,7 @@ def get_start_values(filename):
     fmu.freeInstance()
 
     # clean up
-    rmtree(unzipdir)
+    rmtree(unzipdir, ignore_errors=True)
 
     return start_values
 
@@ -908,6 +968,7 @@ def create_cmake_project(filename, project_dir):
         project_dir  existing directory for the CMake project
     """
 
+    from zipfile import ZipFile
     from fmpy import read_model_description, extract
 
     model_description = read_model_description(filename)
@@ -928,6 +989,13 @@ def create_cmake_project(filename, project_dir):
     if model_description.modelExchange is not None:
         definitions.append('MODEL_EXCHANGE')
 
+    with ZipFile(filename, 'r') as archive:
+        # don't add the current directory
+        resources = list(filter(lambda n: not n.startswith('.'), archive.namelist()))
+
+    # always add the binaries
+    resources.append('binaries')
+
     # use the first source file set of the first build configuration
     build_configuration = model_description.buildConfigurations[0]
     source_file_set = build_configuration.sourceFileSets[0]
@@ -940,6 +1008,7 @@ def create_cmake_project(filename, project_dir):
     txt = txt.replace('%DEFINITIONS%', ' '.join(definitions))
     txt = txt.replace('%INCLUDE_DIRS%', '"' + source_dir.replace('\\', '/') + '"')
     txt = txt.replace('%SOURCES%', ' '.join(sources))
+    txt = txt.replace('%RESOURCES%', '\n    '.join('"' + r + '"' for r in resources))
 
     with open(os.path.join(project_dir, 'CMakeLists.txt'), 'w') as outfile:
         outfile.write(txt)

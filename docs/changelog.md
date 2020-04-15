@@ -1,3 +1,51 @@
+## v0.2.19 (2020-04-15)
+
+- `FIXED` fmi2SetupExperiment() is now called again in FMI 2.0 for Co-Simulation
+- `FIXED` The working directory for the remoting server is now set to binaries/win32
+- `FIXED` ssp.simulation.set_value() has been fixed for Integer and Enumeration variables
+- `NEW` A license file is now added to documentation/licenses when adding the remoting binaries to an FMU
+- `NEW` A stop_time parameter has been added to ssp.instantiate_fmu()
+- `CHANGED` The license has been changed to 2-clause BSD
+
+## v0.2.18 (2020-04-06)
+
+- `FIXED` A list is now passed to np.stack() instead of an iterable and Iterable is now imported from collections.abc to avoid FutureWarnings.
+- `FIXED` Argument checksum of function fmpy.util.download_file() can now be upper case.
+- `FIXED` Start and stop time are now passed to initialize() in FMI 1.0.
+- `FIXED` Variadic arguments in log messages are now processed.
+- `NEW` The model.png is now displayed on the "Model Info" page of the GUI.
+- `NEW` 32-bit FMUs can now be simulated in a 64-bit Python environment on Windows.
+   Existing 32-bit FMUs can also be retro-fitted using the function fmpy.util.add_remoting(),
+   the CLI (fmpy add-remoting ...) and the GUI (Help > Add 32-bit Remoting).
+- `NEW` The FMI headers and schema have been updated to version 2.0.1 and 3.0-alpha.3 respectively.
+- `NEW` The function instantiate_fmu() allows the instantiation and re-use of an FMU independent of the FMI version and type to reduce CPU time.
+   See `examples/efficient_loops.py` for an example.
+- `REMOVED` The parameter `use_source_code` has been removed form `simulate_fmu()` (use `fmpy.util.compile_platform_binary()` instead)
+
+## v0.2.17 (2020-02-04)
+
+- `NEW` "Clear Plots" action has been added to the context menu
+- `IMPROVED` single quotes are now removed from name segments in the tree view
+- `IMPROVED` a RuntimeError is raised when an errors occurs in CVode
+- `IMPROVED` exceptions are raised for undefined declaredType, illegal combinations of causality and variability, and missing shared libraries
+- `IMPROVED` communicationPoint is now calculated as n_steps * step_size to avoid accumulation of numerical errors
+
+## v0.2.16 (2019-12-26)
+
+- `FIXED` pre-compiled SUNDIALS libraries re-added
+
+## v0.2.15 (2019-12-18)
+
+- `FIXED` validation of structured variable names with apostrophes
+- `FIXED` dimensions of variables in FMI 3
+- `NEW` validation of "flat" variable names
+- `UPDATED` FMI 3 schema files
+- `UPDATED` CVode 5.0
+- `IMPROVED` optional files added to CMake projects for source FMUs
+- `IMPROVED` NULL pointers are now ignored in freeMemory()
+- `IMPROVED` frequently used utility functions are now imported to fmpy module
+- `IMPROVED` parameter_variation adapted to new Dask versions
+
 ## v0.2.14 (2019-10-23)
 
 Improved validation & --visible option for CLI
@@ -45,7 +93,7 @@ Experimental FMI 3.0 support, FMI Cross-Check validation scripts
 
 - `FIXED` set start values before entering initialization mode
 - `NEW` experimental FMI 3.0 support
-- `NEW` FMI Cross-Check validation scripts to validate FMUs and results 
+- `NEW` FMI Cross-Check validation scripts to validate FMUs and results
 - `IMPROVED` handling of reference signals with duplicate sample times
 
 ## v0.2.9 (2019-02-07)

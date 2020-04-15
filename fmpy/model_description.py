@@ -367,7 +367,7 @@ def read_model_description(filename, validate=True, validate_variable_names=Fals
             modelDescription.modelExchange = ModelExchange()
             modelDescription.modelExchange.modelIdentifier = modelIdentifier
 
-    else:
+    elif fmiVersion == "2.0":
 
         for me in root.findall('ModelExchange'):
             modelDescription.modelExchange = ModelExchange()
@@ -396,6 +396,34 @@ def read_model_description(filename, validate=True, validate_variable_names=Fals
                               'canSerializeFMUstate',
                               'providesDirectionalDerivative'])
 
+    else:
+
+        for me in root.findall('ModelExchange'):
+            modelDescription.modelExchange = ModelExchange()
+            _copy_attributes(me, modelDescription.modelExchange,
+                             ['modelIdentifier',
+                              'needsExecutionTool',
+                              'completedIntegratorStepNotNeeded',
+                              'canBeInstantiatedOnlyOncePerProcess',
+                              'canNotUseMemoryManagementFunctions',
+                              'canGetAndSetFMUstate',
+                              'canSerializeFMUstate',
+                              'providesDirectionalDerivative'])
+
+        for cs in root.findall('BasicCoSimulation'):
+            modelDescription.coSimulation = CoSimulation()
+            _copy_attributes(cs, modelDescription.coSimulation,
+                             ['modelIdentifier',
+                              'needsExecutionTool',
+                              'canHandleVariableCommunicationStepSize',
+                              'canInterpolateInputs',
+                              'maxOutputDerivativeOrder',
+                              'canRunAsynchronuously',
+                              'canBeInstantiatedOnlyOncePerProcess',
+                              'canNotUseMemoryManagementFunctions',
+                              'canGetAndSetFMUstate',
+                              'canSerializeFMUstate',
+                              'providesDirectionalDerivative'])
     # build configurations
     if fmiVersion == '2.0':
 
@@ -592,7 +620,12 @@ def read_model_description(filename, validate=True, validate_variable_names=Fals
             sv.max = value.get('max')
 
         # resolve the declared type
-        sv.declaredType = type_definitions[value.get('declaredType')]
+        declared_type = value.get('declaredType')
+        if declared_type in type_definitions:
+            sv.declaredType = type_definitions[value.get('declaredType')]
+        else:
+            raise Exception('Variable "%s" (line %s) has declaredType="%s" which has not been defined.'
+                            % (sv.name, sv.sourceline, declared_type))
 
         if fmiVersion == '1.0':
             if sv.causality == 'internal':
@@ -606,9 +639,13 @@ def read_model_description(filename, validate=True, validate_variable_names=Fals
                 sv.variability = 'continuous' if sv.type in {'Float32', 'Float64', 'Real'} else 'discrete'
 
             if sv.initial is None:
-                sv.initial = initial_defaults[sv.variability][sv.causality]
+                try:
+                    sv.initial = initial_defaults[sv.variability][sv.causality]
+                except KeyError:
+                    raise Exception('Variable "%s" (line %s) has an illegal combination of causality="%s"'
+                                    ' and variability="%s".' % (sv.name, sv.sourceline, sv.causality, sv.variability))
 
-        dimensions = variable.findall('Dimensions/Dimension')
+        dimensions = variable.findall('Dimension')
 
         if dimensions:
             sv.dimensions = []
@@ -651,6 +688,9 @@ def read_model_description(filename, validate=True, validate_variable_names=Fals
                     unknown.dependenciesKind = dependenciesKind.strip().split(' ')
 
                 attr.append(unknown)
+
+    if fmiVersion.startswith('3.0'):
+        modelDescription.numberOfEventIndicators = len(root.findall('ModelStructure/EventIndicator'))
 
     if validate:
 
@@ -729,32 +769,50 @@ def read_model_description(filename, validate=True, validate_variable_names=Fals
                 if variable.displayUnit is not None and variable.displayUnit not in unit_definitions[unit]:
                     raise Exception('The display unit "%s" of variable "%s" (line %s) is not defined.' % (variable.displayUnit, variable.name, variable.sourceline))
 
-    if modelDescription.variableNamingConvention == 'structured' and validate_variable_names:
+    if validate_variable_names:
 
-        from lark import Lark
+        if modelDescription.variableNamingConvention == 'flat':
 
-        grammar = r"""
-            name            : identifier | "der(" identifier ("," unsignedinteger)? ")"
-            identifier      : bname arrayindices? ("." bname arrayindices?)*
-            bname           : nondigit (nondigit|digit)* | qname
-            nondigit        : "_" | "a".."z" | "A".."Z"
-            digit           : "0".."9"
-            qname           : """ + u'"\u0027"' + r""" ( qchar | escape ) ( qchar | escape ) """ + u'"\u0027"' + r"""
-            qchar           : nondigit | digit | "!" | "#" | "$" | "%" | "&" | "(" | ")" 
-                              | "*" | "+" | "," | "-" | "." | "/" | ":" | ";" | "<" | ">"
-                              | "=" | "?" | "@" | "[" | "]" | "^" | "{" | "}" | "|" | "~" | " "
-            escape          : """ + u'"\u0027"' + r""" | "\"" | "\?" | "\\" | "\a" | "\b" | "\f" | "\n" | "\r" | "\t" | "\v"
-            arrayindices    : "[" unsignedinteger ("," unsignedinteger)* "]"
-            unsignedinteger : digit+
-            """
-
-        parser = Lark(grammar, start='name')
-
-        try:
             for variable in modelDescription.modelVariables:
-                parser.parse(variable.name)
-        except Exception as e:
-            raise Exception('"%s" (line %s) is not a legal variable name for naming convention "structured". %s'
-                            % (variable.name, variable.sourceline, e))
+
+                if u'\u000D' in variable.name:
+                    raise Exception('Variable "%s" (line %s) contains an illegal carriage return character (U+000D).'
+                                    % (variable.name, variable.sourceline))
+
+                if u'\u000A' in variable.name:
+                    raise Exception('Variable "%s" (line %s) contains an illegal line feed character (U+000A).'
+                                    % (variable.name, variable.sourceline))
+
+                if u'\u0009' in variable.name:
+                    raise Exception('Variable "%s" (line %s) contains an illegal tab character (U+0009).'
+                                    % (variable.name, variable.sourceline))
+
+        else:  # variableNamingConvention == structured
+
+            from lark import Lark
+
+            grammar = r"""
+                name            : identifier | "der(" identifier ("," unsignedinteger)? ")"
+                identifier      : bname arrayindices? ("." bname arrayindices?)*
+                bname           : nondigit (nondigit|digit)* | qname
+                nondigit        : "_" | "a".."z" | "A".."Z"
+                digit           : "0".."9"
+                qname           : "'" ( qchar | escape ) ( qchar | escape ) "'"
+                qchar           : nondigit | digit | "!" | "#" | "$" | "%" | "&" | "(" | ")" 
+                                  | "*" | "+" | "," | "-" | "." | "/" | ":" | ";" | "<" | ">"
+                                  | "=" | "?" | "@" | "[" | "]" | "^" | "{" | "}" | "|" | "~" | " "
+                escape          : "\'" | "\"" | "\?" | "\\" | "\a" | "\b" | "\f" | "\n" | "\r" | "\t" | "\v"
+                arrayindices    : "[" unsignedinteger ("," unsignedinteger)* "]"
+                unsignedinteger : digit+
+                """
+
+            parser = Lark(grammar, start='name')
+
+            try:
+                for variable in modelDescription.modelVariables:
+                    parser.parse(variable.name)
+            except Exception as e:
+                raise Exception('"%s" (line %s) is not a legal variable name for naming convention "structured". %s'
+                                % (variable.name, variable.sourceline, e))
 
     return modelDescription

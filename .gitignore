@@ -4,6 +4,9 @@
 *.csv
 *.html
 
+# source archives
+*.tar.gz
+
 # Affinity Designer documents
 *.afdesign
 
@@ -12,6 +15,7 @@
 
 # build artifacts
 build/
+cvode-*/
 dist/
 MANIFEST
 *.egg-info
