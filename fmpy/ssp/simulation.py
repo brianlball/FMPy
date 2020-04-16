@@ -75,7 +75,7 @@ def instantiate_fmu(component, ssp_unzipdir, start_time, stop_time=None, run_dir
     fmu_filename = os.path.join(ssp_unzipdir, component.source)
 
     if run_dir is not None:
-        component.unzipdir = extract(fmu_filename, run_dir + '/' + component.name)
+        component.unzipdir = extract(fmu_filename, run_dir / component.name)
     else:
         component.unzipdir = extract(fmu_filename)
     # read the model description
@@ -177,7 +177,7 @@ def simulate_ssp(ssp_filename, start_time=0.0, stop_time=None, step_size=None, r
 
     # extract the SSP
     if run_dir is not None:
-        ssp_unzipdir = extract(ssp_filename, run_dir + '/ssp')
+        ssp_unzipdir = extract(ssp_filename, run_dir / "ssp")
     else:
         ssp_unzipdir = extract(ssp_filename)
 
