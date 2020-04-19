@@ -182,7 +182,7 @@ def extract(filename, unzipdir=None):
     if unzipdir is None:
         unzipdir = mkdtemp()
     if isinstance(unzipdir, pathlib.PurePath):
-        print("using PurePath")
+        pass
     # expand the 8.3 paths on windows
     elif sys.platform.startswith('win') and '~' in unzipdir:
         import win32file
