@@ -2,6 +2,8 @@
 import os
 import sys
 import shutil
+import numpy as np
+from fmpy import read_model_description
 
 print("sys.argv:", sys.argv)
 print("os.getcwd():", os.getcwd())
@@ -32,7 +34,14 @@ ssp_file = shutil.copy(ssp_filename, run_dir)
 os.chdir(run_dir)
 print("os.getcwd():", os.getcwd())
 print("Simulating %s..." % ssp_filename)
-result = simulate_ssp(ssp_file, start_time=fmu_start_time, stop_time=fmu_stop_time, step_size=fmu_time_step, run_dir=run_dir)
+#dtype = np.dtype([('a', np.float64)])
+#param_set = np.array((0.1), dtype=dtype)
+from fmpy.ssp.ssd import Parameter, ParameterSet
+parameter_set = ParameterSet(name='params')
+parameter1 = Parameter(name="electric.a", type="Real", value=0.15)
+parameter_set.parameters.append(parameter1)
+
+result = simulate_ssp(ssp_file, start_time=fmu_start_time, stop_time=fmu_stop_time, step_size=fmu_time_step, run_dir=run_dir, parameter_set=parameter_set)
 
 show_plot=True
 
@@ -46,7 +55,7 @@ if show_plot:
     #plot_result(result, names=['space.zone_temp'], window_title=ssp_filename, filename=dir + '/temp.png')
     fig1 = pl.figure()
     ax1 = fig1.add_subplot()
-    ax1.plot(result['electric.y'], 'b--')
+    ax1.plot(result['electric.y_out'], 'b--')
     ax1.plot(result['space.district_heating'], 'r')
     ax1.plot(result['space.district_cooling'], 'g')
     pl.savefig(save_name)

@@ -2,7 +2,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as pl
 
-os.chdir('run_ssp/new_in_fmu')
+#os.chdir('run_ssp/new_in_fmu')
 os.getcwd()
 import pyfmi
 from pyfmi import load_fmu
